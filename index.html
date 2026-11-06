@@ -171,21 +171,31 @@
         .profile-frame {
             width: 100%; max-width: 380px; height: 480px; border-radius: 20px;
             position: relative; overflow: hidden; cursor: pointer;
-            background: url('img/yudi.jpg') center/cover;
-            background-position: top center;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.5), 0 0 30px rgba(45, 212, 191, 0.3); /* Glow border */
+            /* Background dihapus — sekarang pakai <img> di dalamnya */
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5), 0 0 30px rgba(45, 212, 191, 0.3);
             border: 2px solid rgba(45, 212, 191, 0.5);
-            filter: grayscale(100%);
-            transition: filter 0.5s ease, box-shadow 0.5s ease;
-            /* JS akan mengatur transform ini */
+            transition: box-shadow 0.5s ease;
             transform-style: preserve-3d;
         }
         .profile-frame:hover { 
-            filter: grayscale(0%); 
             box-shadow: 0 20px 40px rgba(0,0,0,0.5), 0 0 50px rgba(45, 212, 191, 0.6);
         }
-        
-        .profile-frame.warna { filter: grayscale(0%); }
+
+        /* IMG FOTO PROFIL (bisa dibaca GitHub) */
+        .profile-image {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: top center;
+            display: block;
+            filter: grayscale(100%);
+            transition: filter 0.5s ease, transform 0.5s ease;
+            pointer-events: none; /* biar klik masuk ke frame */
+        }
+        .profile-frame:hover .profile-image { filter: grayscale(0%); }
+        .profile-frame.warna .profile-image { filter: grayscale(0%); }
 
         .btn-toggle-color {
             position: absolute; top: 15px; right: 15px;
@@ -202,7 +212,8 @@
             border: 1px solid var(--border-color); padding: 15px 20px; border-radius: 15px;
             display: flex; justify-content: space-between; align-items: center;
             /* Mencegah overlay ikut miring 3D */
-            transform: translateZ(20px); 
+            transform: translateZ(20px);
+            z-index: 5;
         }
         .profile-info { display: flex; align-items: center; gap: 12px; }
         .profile-icon {
@@ -506,11 +517,14 @@
         </div>
 
         <div class="hero-card">
-            <!-- Frame foto dengan efek 3D Tilt -->
-            <div class="profile-frame" id="fotoProfil" onclick="openLightbox('img/yudi.jpg')">
+            <!-- Frame foto dengan efek 3D Tilt — sekarang pakai <img> -->
+            <div class="profile-frame" id="fotoProfil" onclick="openLightbox('img/yudi.JPG')">
                 <button class="btn-toggle-color" onclick="toggleWarna(event)">
                     <i class="fas fa-palette"></i> Warna
                 </button>
+
+                <!-- FOTO PROFIL (img biasa biar kebaca GitHub) -->
+                <img src="img/yudi.JPG" alt="Foto Muhammad Wahyudi" class="profile-image">
 
                 <div class="profile-overlay">
                     <div class="profile-info">
@@ -610,7 +624,7 @@
     <!-- 4. GALERI FOTO SECTION -->
     <section id="galeri" class="gallery">
         <div class="section-title">
-            <h2>Momen <span style="color: var(--accent-cyan);">Berharga</span></h2>
+            <h2>Gal<span style="color: var(--accent-cyan);">eri</span></h2>
             <p>Beberapa potret perjalanan menuju kelulusan.</p>
         </div>
 
@@ -656,9 +670,8 @@
     <script>
         // --- 1. EFEK KONFETI SAAT KLIK ABSEN ---
         function rsvpWA(event, url) {
-            event.preventDefault(); // Mencegah redirect langsung
+            event.preventDefault();
             
-            // Tembak Konfeti
             confetti({
                 particleCount: 150,
                 spread: 70,
@@ -666,7 +679,6 @@
                 colors: ['#2dd4bf', '#a855f7', '#ffffff', '#f59e0b']
             });
 
-            // Redirect ke WhatsApp setelah 1 detik agar konfeti terlihat
             setTimeout(() => {
                 window.open(url, '_blank');
             }, 1000);
@@ -675,24 +687,21 @@
         // --- 2. EFEK 3D TILT PADA FOTO ---
         const profileFrame = document.querySelector('.profile-frame');
         
-        // Hanya jalankan di Desktop
         if(window.innerWidth > 900) {
             profileFrame.addEventListener('mousemove', (e) => {
                 const rect = profileFrame.getBoundingClientRect();
-                const x = e.clientX - rect.left; // Posisi mouse X di dalam foto
-                const y = e.clientY - rect.top;  // Posisi mouse Y di dalam foto
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
 
                 const centerX = rect.width / 2;
                 const centerY = rect.height / 2;
 
-                // Kalkulasi rotasi (-15 s.d 15 derajat)
                 const rotateX = ((y - centerY) / centerY) * -10; 
                 const rotateY = ((x - centerX) / centerX) * 10;
 
                 profileFrame.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
             });
 
-            // Kembalikan ke posisi semula saat mouse keluar
             profileFrame.addEventListener('mouseleave', () => {
                 profileFrame.style.transform = `perspective(1000px) rotateX(0) rotateY(0) scale3d(1, 1, 1)`;
             });
@@ -708,12 +717,10 @@
                     const x = e.clientX - rect.left - rect.width / 2;
                     const y = e.clientY - rect.top - rect.height / 2;
                     
-                    // Tombol bergerak mendekati mouse
                     btn.style.transform = `translate(${x * 0.3}px, ${y * 0.3}px)`;
                 });
 
                 btn.addEventListener('mouseleave', () => {
-                    // Kembali ke posisi semula
                     btn.style.transform = `translate(0, 0)`;
                 });
             });
@@ -772,6 +779,7 @@
         }
 
         // --- 7. FITUR GANTI WARNA FOTO PROFIL ---
+        // Karena filter grayscale sekarang di .profile-image, kita toggle class 'warna' di frame
         function toggleWarna(event) {
             event.stopPropagation(); 
             const foto = document.getElementById('fotoProfil');
